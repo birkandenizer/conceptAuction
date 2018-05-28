@@ -24,7 +24,7 @@
     "eslint-config-standard": "^6.0.0",
     "eslint-plugin-babel": "^4.0.0",
     "eslint-plugin-mocha": "^4.8.0",
-    "eslint-plugin-promise": "^3.0.0",
+    "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^2.0.0",
     "html-webpack-plugin": "^2.28.0",
     "json-loader": "^0.5.4",
