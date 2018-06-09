@@ -16,8 +16,6 @@ var account;
 var tempAuction;
 var auctions = [];
 
-var convdataTime;
-
 window.App = {
     start: function () {
         var self = this;
@@ -107,27 +105,6 @@ window.App = {
         }
     },
 
-    convertUnixTimeToDate: function (unixtimestamp) {
-        // Months array
-        var months_arr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        // Convert timestamp to milliseconds
-        var date = new Date(unixtimestamp * 1000);
-        // Year
-        var year = date.getFullYear();
-        // Month
-        var month = months_arr[date.getMonth()];
-        // Day
-        var day = date.getDate();
-        // Hours
-        var hours = date.getHours();
-        // Minutes
-        var minutes = "0" + date.getMinutes();
-        // Seconds
-        var seconds = "0" + date.getSeconds();
-        // Display date time in MM-dd-yyyy h:m:s format
-        convdataTime = month + '-' + day + '-' + year + ' ' + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-    },
-
     listAuctions: function (value) {
         var self = this;
 
@@ -146,8 +123,7 @@ window.App = {
                     output = output + "<td>" + auction[1] + "</td>";
                     output = output + "<td>" + web3.fromWei(auction[8], "ether") + " ETH" + "</td>";
                     output = output + "<td>" + auction[10] + "</td>";
-                    //self.convertUnixTimeToDate(auction[3]);
-                    output = output + "<td>" + auction[3] + "</td>";
+                    output = output + "<td>" + convertUnixTimeToDate(auction[3]) + "</td>";
                     output = output + "</tr>";
                 }
             }
@@ -311,3 +287,29 @@ window.addEventListener('load', function () {
 
     App.start();
 });
+
+// Converts Unix time to more readable version
+function convertUnixTimeToDate(unixtimestamp) {
+    var convdataTime;
+    // Months array
+    var months_arr = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    // Convert timestamp to milliseconds
+    var date = new Date(unixtimestamp * 1000);
+    // Year
+    var year = date.getFullYear();
+    // Month
+    var month = months_arr[date.getMonth()];
+    // Day
+    var day = date.getDate();
+    // Hours
+    var hours = date.getHours();
+    // Minutes
+    var minutes = "0" + date.getMinutes();
+    // Seconds
+    var seconds = "0" + date.getSeconds();
+    // Display date time in MM-dd-yyyy h:m:s format
+    convdataTime = month + ' ' + day + ' ' + year + ' ' + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+    console.log("convdataTime");
+    console.log(convdataTime);
+    return convdataTime;
+}
