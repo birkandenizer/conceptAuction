@@ -375,6 +375,7 @@ window.App = {
         var description = document.getElementById("auctionDescription").value;
         var expirationTime = parseInt(document.getElementById("expirationTime").value);
         var startPrice = parseInt(document.getElementById("startPrice").value);
+        startPrice = web3.toWei(startPrice, "ether");
         var assetId = parseInt(document.getElementById("assetId").value);
 
         this.setStatus("Creating auction... (please wait)");
