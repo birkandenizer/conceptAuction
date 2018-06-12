@@ -15,6 +15,7 @@ var accounts;
 var account;
 var tempAuction;
 var auctions = [];
+var assets = [];
 
 window.App = {
     start: function () {
@@ -38,16 +39,23 @@ window.App = {
             accounts = accs;
             account = accounts[0];
 
-            var pathArray = window.location.search;
-            if (pathArray.length != 0) {
-                self.refreshAuction();
-            } else  {
+            var pathname = window.location.pathname;
+            if (pathname == "/" || pathname == "/index.html") {
                 self.refreshAccountInfo();
                 self.refreshAssetCount();
                 self.refreshAssetCountForUser();
                 self.refreshAuctionCount();
                 self.refreshAuctionCountForUser();
+            } else if (pathname == "/auctions.html") {
+                self.refreshAuctions();
+            } else if (pathname == "/createAuction.html") {
+                self.refreshAssets();
             }
+
+            var pathArray = window.location.search;
+            if (pathArray.length != 0) {
+                self.refreshAuction();
+            } 
         });
     },
 
@@ -95,6 +103,77 @@ window.App = {
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error getting assetCountForUser; see log.");
+        });
+    },
+
+    listAssets: function (value) {
+        var self = this;
+
+        if (assets.length < value) {
+            console.log("listAuctions Delaying display operation to finish retrieving auctions");
+            setTimeout(self.listAssets, 500, value);
+        } else {
+
+            var assetList = document.getElementById("assetList");
+            var output = "";
+            for (var j = 0; j < value; j++) {
+                var asset = assets[j];
+                if (asset[2] ==  account) {
+                    output = output + "<tr>";
+                    output = output + "<td>" + asset[7] + "</td>";
+                    output = output + "<td>" + asset[5] + "</td>";
+                    output = output + "<td>" + asset[6] + "</td>";
+                    output = output + "<td>" + convertUnixTimeToDate(asset[1]) + "</td>";
+                    output = output + "<td>" + asset[0] + "</td>";
+                    output = output + "<td>" + asset[3] + "</td>";
+                    output = output + "<td>" + asset[4] + "</td>";
+                    output = output + "<td>" + asset[2] + "</td>";
+                    output = output + "</tr>";
+                }
+            }
+            console.log("Listing assets");
+            assetList.innerHTML = output;
+        }
+    },
+
+    refreshAssets: function () {
+        var self = this;
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.getAssetCount.call();
+        }).then(function (value) {
+            self.fetchAssets(value);
+            self.listAssets(value);
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error refreshing assets; see log.");
+        });
+    },
+
+    fetchAssets: function (value) {
+        var self = this;
+
+        for (var i = 0; i < value; i++) {
+            self.getAsset(i);
+        }
+    },
+
+    getAsset: function (assetId) {
+        var self = this;
+
+        var auctionInstance;
+        conceptAuction.deployed().then(function (instance) {
+            auctionInstance = instance;
+            return auctionInstance.getAsset.call(assetId);
+        }).then(function (asset) {
+            console.log("Retrieving asset with ID:" + assetId);
+            asset[7] = assetId;
+            assets.push(asset);
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error retrieving asset; see log.");
         });
     },
 
@@ -162,6 +241,22 @@ window.App = {
             auctionCount_element.innerHTML = value.valueOf();
 
             self.fetchAuctions(value);
+            //self.listAuctions(value);
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error getting auctionCount; see log.");
+        });
+    },
+
+    refreshAuctions: function () {
+        var self = this;
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.getAuctionCount.call();
+        }).then(function (value) {
+            self.fetchAuctions(value);
             self.listAuctions(value);
         }).catch(function (e) {
             console.log(e);
@@ -216,18 +311,25 @@ window.App = {
             output += "<tr><td class='auctionlabel'>Asset ID:</td><td>" + auction[11] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Auction ID:</td><td>" + auctionId + "</td></tr>";
 
+            
+
             //Place bid button
             if (auction[5] == true && (Math.floor(Date.now() / 1000)) <= auction[3]) {
                 output += "<tr><td class='auctionLabel'>Owner Identifier:</td><td><input type='text' id='ownerIdentifier' placeholder='e.g., 01234567890'></input></td></tr>";
                 output += "<tr><td class='auctionLabel'>Owner First Name:</td><td><input type='text' id='ownerFirstName' placeholder='e.g., John'></input></td></tr>";
                 output += "<tr><td class='auctionLabel'>Owner Last Name:</td><td><input type='text' id='ownerLastName' placeholder='e.g., Doe'></input></td></tr>";
-                output += "<tr><td class='auctionLabel'>Bid (in eth):</td><td><input type='text' id='bid_value' placeholder='e.g., 3.0'></input></td></tr>";
-                output += "<tr><td class='auctionLabel'>&nbsp;</td><td><button id='bid_button' class='btn btn-primary' onclick='App.placeBid(" + auction[8] + ")'>Place Bid</button></td></tr>";
+                output += "<tr><td class='auctionLabel'>Bid:</td><td><input type='text' id='bid_value' placeholder='e.g., 3.0 Ether'></input></td></tr>";
+                output += "<tr><td class='auctionLabel'>&nbsp;</td><td><button id='placeBid' class='btn btn-primary' onclick='App.placeBid(" + auction[8] + ")'>Place Bid</button></td></tr>";
             }
 
-            //End auction button
+            //Cancel auction button
+            if (auction[5] == true && (Math.floor(Date.now() / 1000)) < auction[3]  && auction[6]==account) {
+                output += "<tr><td class='auctionLabel'>Cancel Auction:</td><td><button id='cancelAuction' value='"+ auction[6] +"' onclick='App.cancelAuction()'>Cancel Auction</button></td></tr>";
+            }
+
+            //Finish auction button
             if (auction[5] == true && (Math.floor(Date.now() / 1000)) > auction[3]) {
-                output += "<tr><td class='auctionLabel'>End Auction:</td><td><button id='end_button' onclick='App.endAuction()'>End Auction</button></td></tr>";
+                output += "<tr><td class='auctionLabel'>Finish Auction:</td><td><button id='finishAuction' value='"+ auction[6] +"' onclick='App.finishAuction()'>Finish Auction</button></td></tr>";
             }
             output += "</table>";
 
@@ -285,7 +387,7 @@ window.App = {
             self.setStatus("Auction created!");
             self.refreshAuctionCount();
             self.refreshAuctionCountForUser();
-            window.location.reload(true);
+            window.location.href = '../auctions.html';
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error creating auction; see log.");
@@ -323,6 +425,59 @@ window.App = {
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error placing bid; see log.");
+        });
+    },
+
+    cancelAuction: function () {
+        var self = this;
+
+        var pathArray = window.location.search.split('=');
+        var auctionId = pathArray[1];
+
+        var auctionOwner = document.getElementById("cancelAuction").value;
+        
+        this.setStatus("Canceling auction... (please wait)");
+
+        if (auctionOwner != account) {
+            setStatus("You need to be auction owner to cancel");
+            return;
+        }
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.cancelAuction(auctionId, (Math.floor(Date.now() / 1000)), { from: account, gas: 800000 });
+        }).then(function () {
+            self.setStatus("Auction canceled!");
+            self.refreshAuctions();
+            self.refreshAssets();
+            window.location.href = '../auctions.html';
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error canceling auction; see log.");
+        });
+    },
+
+    finishAuction: function () {
+        var self = this;
+
+        var pathArray = window.location.search.split('=');
+        var auctionId = pathArray[1];
+
+        this.setStatus("Finishing auction... (please wait)");
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.finishAuction(auctionId, (Math.floor(Date.now() / 1000)), { from: account, gas: 800000 });
+        }).then(function () {
+            self.setStatus("Auction finished!");
+            self.refreshAuctions();
+            self.refreshAssets();
+            window.location.href = '../auctions.html';
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error finishing auction; see log.");
         });
     },
 
