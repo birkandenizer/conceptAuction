@@ -100,7 +100,7 @@ contract ConceptAuction {
         uint256 _startTime, uint256 _expirationTime,
         uint256 _startPrice, uint256 _assetId) public payable returns (uint256 _auctionId) {
 
-        require(block.timestamp <= (_startTime + _expirationTime));
+        require(0 < _expirationTime);
         require(0 < _startPrice);
         require(assets[_assetId].status == false);
 
@@ -115,7 +115,7 @@ contract ConceptAuction {
         auctions[_auctionId].currentBidAmount = _startPrice;
         auctions[_auctionId].currentBidTimestamp = _startTime;
         auctions[_auctionId].bidCount = 0;
-        auctions[_auctionId].assetIdentifier = assetCount;
+        auctions[_auctionId].assetIdentifier = _assetId;
         auctions[_auctionId].status = true;        
         setAssetStatus(_assetId,true);
 
@@ -125,6 +125,20 @@ contract ConceptAuction {
     }
 
     //Asset related getters
+    function getAsset(uint256 _assetId) public view returns(
+        uint256,uint256,address,string,string,string,bool) {
+        Asset memory current = assets[_assetId];
+        return (
+            current.ownerIdentifier,
+            current.timestamp,
+            current.owner,
+            current.ownerFirstName,
+            current.ownerLastName,
+            current.name,
+            current.status
+            );
+    }
+
     function getAssetCount() public view returns(uint256){
         return assetCount;
     }
@@ -164,7 +178,7 @@ contract ConceptAuction {
     //Asset related setters
     //Maybe add onlyContract like a limiter
     //Transferlerde alan kişi ilk onaylama, onaylamadan sonra
-    function setAssetOwnerIdentifier(uint256 _assetId, uint _newAssetOwnerIdentifier) public returns (bool) {
+    function setAssetOwnerIdentifier(uint256 _assetId, uint _newAssetOwnerIdentifier) private returns (bool) {
         if(assets[_assetId].ownerIdentifier != 0){
             assets[_assetId].ownerIdentifier = _newAssetOwnerIdentifier;
             return true;
@@ -173,7 +187,7 @@ contract ConceptAuction {
         }
     }
 
-    function setAssetTimestamp(uint256 _assetId, uint256 _timestamp) public returns (bool) {
+    function setAssetTimestamp(uint256 _assetId, uint256 _timestamp) private returns (bool) {
         if(assets[_assetId].timestamp != 0){
             assets[_assetId].timestamp = _timestamp;
             return true;
@@ -182,7 +196,7 @@ contract ConceptAuction {
         }
     }
     
-    function setOwner(uint256 _assetId, address _newOwner) public returns (bool) {
+    function setOwner(uint256 _assetId, address _newOwner) private returns (bool) {
         if(assets[_assetId].owner != 0){
             assets[_assetId].owner = _newOwner;
             return true;
@@ -191,7 +205,7 @@ contract ConceptAuction {
         }
     }
 
-    function setAssetOwnerFirstName(uint256 _assetId, string _newAssetOwnerFirstName) public returns (bool) {
+    function setAssetOwnerFirstName(uint256 _assetId, string _newAssetOwnerFirstName) private returns (bool) {
         if(bytes(assets[_assetId].ownerFirstName).length != 0){
             assets[_assetId].ownerFirstName = _newAssetOwnerFirstName;
             return true;
@@ -200,7 +214,7 @@ contract ConceptAuction {
         }
     }
 
-    function setAssetOwnerLastName(uint256 _assetId, string _newAssetOwnerLastName) public returns (bool) {
+    function setAssetOwnerLastName(uint256 _assetId, string _newAssetOwnerLastName) private returns (bool) {
         if(bytes(assets[_assetId].ownerLastName).length != 0){
             assets[_assetId].ownerLastName = _newAssetOwnerLastName;
             return true;
@@ -209,7 +223,7 @@ contract ConceptAuction {
         }
     }
 
-    function setAssetStatus(uint256 _assetId, bool _status) public returns (bool) {
+    function setAssetStatus(uint256 _assetId, bool _status) private returns (bool) {
         if(bytes(assets[_assetId].name).length != 0){
             assets[_assetId].status = _status;
             return true;
@@ -309,6 +323,8 @@ contract ConceptAuction {
         if (bidId > 0) {
             Bid memory previousBid = currentAuction.bids[bidId - 1];
             refunds[previousBid.bidder] += previousBid.amount;
+
+            transferRefundNow(previousBid.bidder);
         }
 
         emit BidPlacement(_auctionId, msg.sender, msg.value);
@@ -327,7 +343,12 @@ contract ConceptAuction {
         currentAuction.expirationTime = _expirationTime;
         currentAuction.status = false;
 
+        Asset storage currentAsset = assets[currentAuction.assetIdentifier];
+        currentAsset.status = false;
+
         emit AuctionCancelation(_auctionId);
+
+        transferRefundNow(highestBid.bidder);
         
         return true;
     }
@@ -336,7 +357,7 @@ contract ConceptAuction {
         Auction storage currentAuction = auctions[_auctionId];
 
         require(currentAuction.status == true);
-        require(block.timestamp > currentAuction.expirationTime);
+        require(_timestamp > currentAuction.expirationTime);
 
         if (currentAuction.bidCount == 0) {
             currentAuction.status = false;
@@ -356,6 +377,8 @@ contract ConceptAuction {
 
             emit AuctionFinish(_auctionId, highestBid.bidder, currentAuction.currentBidAmount);
             
+            transferRefundNow(currentAuction.seller);
+
             return true;
         }
     }
@@ -370,6 +393,14 @@ contract ConceptAuction {
         if (refundAmount > 0) {
             refunds[msg.sender] = 0;
             msg.sender.transfer(refundAmount);
+        }
+    }
+
+    function transferRefundNow(address _highestBidder) public {
+        uint256 refundAmount = refunds[_highestBidder];
+        if (refundAmount > 0) {
+            refunds[_highestBidder] = 0;
+            _highestBidder.transfer(refundAmount);
         }
     }
 }
