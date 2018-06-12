@@ -36,15 +36,17 @@ window.App = {
             }
 
             accounts = accs;
-            account = accounts[0];            
+            account = accounts[0];
 
             var pathArray = window.location.search;
-            if (pathArray.length != 0){
+            if (pathArray.length != 0) {
                 self.refreshAuction();
-            } else {
+            } else  {
                 self.refreshAccountInfo();
                 self.refreshAssetCount();
+                self.refreshAssetCountForUser();
                 self.refreshAuctionCount();
+                self.refreshAuctionCountForUser();
             }
         });
     },
@@ -74,8 +76,6 @@ window.App = {
         }).then(function (value) {
             var assetCount_element = document.getElementById("assetCount");
             assetCount_element.innerHTML = value.valueOf();
-
-            self.refreshAssetCountForUser();
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error getting assetCount; see log.");
@@ -94,7 +94,7 @@ window.App = {
             assetCount_element.innerHTML = value.valueOf();
         }).catch(function (e) {
             console.log(e);
-            self.setStatus("Error getting assetCount; see log.");
+            self.setStatus("Error getting assetCountForUser; see log.");
         });
     },
 
@@ -163,7 +163,6 @@ window.App = {
 
             self.fetchAuctions(value);
             self.listAuctions(value);
-            self.refreshAuctionCountForUser();
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error getting auctionCount; see log.");
@@ -182,7 +181,7 @@ window.App = {
             auctionCount_element.innerHTML = value.valueOf();
         }).catch(function (e) {
             console.log(e);
-            self.setStatus("Error getting myAuctionCount; see log.");
+            self.setStatus("Error getting myAuctionCountForUser; see log.");
         });
     },
 
@@ -205,27 +204,30 @@ window.App = {
             output += "<table class='auctionDetails'>";
             output += "<tr><td class='auctionlabel'>Name:</td><td>" + auction[0] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Description:</td><td>" + auction[1] + "</td></tr>";
-            output += "<tr><td class='auctionlabel'>Start Time:</td><td>" + auction[2] + "</td></tr>";
-            output += "<tr><td class='auctionlabel'>Expiration Time:</td><td>" + auction[3] + "</td></tr>";
+            output += "<tr><td class='auctionlabel'>Start Time:</td><td>" + convertUnixTimeToDate(auction[2]) + "</td></tr>";
+            output += "<tr><td class='auctionlabel'>Expiration Time:</td><td>" + convertUnixTimeToDate(auction[3]) + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Start Price:</td><td>" + web3.fromWei(auction[4], "ether") + " ETH" + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Status:</td><td>" + auction[5] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Seller:</td><td>" + auction[6] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Current Bidder:</td><td>" + auction[7] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Current Bid:</td><td>" + web3.fromWei(auction[8], "ether") + " ETH" + "</td></tr>";
-            output += "<tr><td class='auctionlabel'>Current Bid Time:</td><td>" + auction[9] + "</td></tr>";
+            output += "<tr><td class='auctionlabel'>Current Bid Time:</td><td>" + convertUnixTimeToDate(auction[9]) + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Bid Count:</td><td>" + auction[10] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Asset ID:</td><td>" + auction[11] + "</td></tr>";
             output += "<tr><td class='auctionlabel'>Auction ID:</td><td>" + auctionId + "</td></tr>";
 
             //Place bid button
             if (auction[5] == true && (Math.floor(Date.now() / 1000)) <= auction[3]) {
-                output += "<tr><td class='auctionLabel'>Bid (in eth):</td><td><input type='text' id='bid_value' placeholder='eg 3.0'></input></td></tr>";
-                output += "<tr><td class='auctionLabel'>&nbsp;</td><td><button id='bid_button' class='btn btn-primary' onclick='placeBid()'>Place Bid</button></td></tr>";
+                output += "<tr><td class='auctionLabel'>Owner Identifier:</td><td><input type='text' id='ownerIdentifier' placeholder='e.g., 01234567890'></input></td></tr>";
+                output += "<tr><td class='auctionLabel'>Owner First Name:</td><td><input type='text' id='ownerFirstName' placeholder='e.g., John'></input></td></tr>";
+                output += "<tr><td class='auctionLabel'>Owner Last Name:</td><td><input type='text' id='ownerLastName' placeholder='e.g., Doe'></input></td></tr>";
+                output += "<tr><td class='auctionLabel'>Bid (in eth):</td><td><input type='text' id='bid_value' placeholder='e.g., 3.0'></input></td></tr>";
+                output += "<tr><td class='auctionLabel'>&nbsp;</td><td><button id='bid_button' class='btn btn-primary' onclick='App.placeBid(" + auction[8] + ")'>Place Bid</button></td></tr>";
             }
 
             //End auction button
             if (auction[5] == true && (Math.floor(Date.now() / 1000)) > auction[3]) {
-                output += "<tr><td class='auctionLabel'>End Auction:</td><td><button id='end_button' onclick='endAuction()'>End Auction</button></td></tr>";
+                output += "<tr><td class='auctionLabel'>End Auction:</td><td><button id='end_button' onclick='App.endAuction()'>End Auction</button></td></tr>";
             }
             output += "</table>";
 
@@ -256,6 +258,8 @@ window.App = {
         }).then(function () {
             self.setStatus("Asset created!");
             self.refreshAssetCount();
+            self.refreshAssetCountForUser();
+            window.location.reload(true);
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error creating asset; see log.");
@@ -280,9 +284,45 @@ window.App = {
         }).then(function () {
             self.setStatus("Auction created!");
             self.refreshAuctionCount();
+            self.refreshAuctionCountForUser();
+            window.location.reload(true);
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error creating auction; see log.");
+        });
+    },
+
+    placeBid: function (currentBid) {
+        var self = this;
+
+        var bid = document.getElementById("bid_value").value;
+        bid = web3.toWei(bid, "ether");
+
+        var pathArray = window.location.search.split('=');
+        var auctionId = pathArray[1];
+
+        var ownerIdentifier = document.getElementById("ownerIdentifier").value;
+        var ownerFirstName = document.getElementById("ownerFirstName").value;
+        var ownerLastName = document.getElementById("ownerLastName").value;
+
+        this.setStatus("Placing bid... (please wait)");
+
+        if (bid < currentBid) {
+            setStatus("Bid needs to be at least " + currentBid);
+            return;
+        }
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.placeBid(auctionId, (Math.floor(Date.now() / 1000)), ownerIdentifier, ownerFirstName, ownerLastName, { from: account, value:bid, gas: 800000 });
+        }).then(function () {
+            self.setStatus("Bid placed!");
+            self.refreshAuction();
+            window.location.reload(true);
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error placing bid; see log.");
         });
     },
 
