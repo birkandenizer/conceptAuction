@@ -74,6 +74,24 @@ window.App = {
         }).then(function (value) {
             var assetCount_element = document.getElementById("assetCount");
             assetCount_element.innerHTML = value.valueOf();
+
+            self.refreshAssetCountForUser();
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error getting assetCount; see log.");
+        });
+    },
+
+    refreshAssetCountForUser: function () {
+        var self = this;
+
+        var asset;
+        conceptAuction.deployed().then(function (instance) {
+            asset = instance;
+            return asset.getAssetCountForUser.call(account);
+        }).then(function (value) {
+            var assetCount_element = document.getElementById("myAssetCount");
+            assetCount_element.innerHTML = value.valueOf();
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error getting assetCount; see log.");
@@ -145,9 +163,26 @@ window.App = {
 
             self.fetchAuctions(value);
             self.listAuctions(value);
+            self.refreshAuctionCountForUser();
         }).catch(function (e) {
             console.log(e);
             self.setStatus("Error getting auctionCount; see log.");
+        });
+    },
+
+    refreshAuctionCountForUser: function () {
+        var self = this;
+
+        var auction;
+        conceptAuction.deployed().then(function (instance) {
+            auction = instance;
+            return auction.getAuctionCountForUser.call(account);
+        }).then(function (value) {
+            var auctionCount_element = document.getElementById("myAuctionCount");
+            auctionCount_element.innerHTML = value.valueOf();
+        }).catch(function (e) {
+            console.log(e);
+            self.setStatus("Error getting myAuctionCount; see log.");
         });
     },
 

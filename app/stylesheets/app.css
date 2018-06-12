@@ -1,7 +1,6 @@
 body {
-  margin-left: 25%;
-  margin-right: 25%;
-  margin-top: 10%;
+  margin-left: 10%;
+  margin-right: 10%;
   font-family: "Open Sans", sans-serif;
 }
 
@@ -48,4 +47,28 @@ h3 {
 
 .hint {
   color: #666;
+}
+
+/* Header */
+
+header nav {
+	text-align: center;
+}
+
+header nav ul {
+	list-style: none;
+	display: inline-block;
+	line-height: 100px;
+}
+
+header nav ul li {
+	display: inline-block;
+	padding: 0 30px;
+}
+
+header nav ul li a {
+	text-decoration: none;
+	font-weight: bold;
+	font-size: 1.5em;
+	color: #aaa;
 }

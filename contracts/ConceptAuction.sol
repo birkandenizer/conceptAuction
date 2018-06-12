@@ -157,6 +157,10 @@ contract ConceptAuction {
         return assets[_assetId].status;
     }
 
+    function getAssetCountForUser(address _user) public view returns (uint256) {
+        return assetsAddedByUser[_user].length;
+    }
+
     //Asset related setters
     //Maybe add onlyContract like a limiter
     //Transferlerde alan kişi ilk onaylama, onaylamadan sonra

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Welcome</title>
+    <script src="./app.js"></script>
+</head>
+
+<body>
+
+    <div class="above_container">
+        <header class="main">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+                    <li>
+                        <a href="createAuction.html">Create New Auction</a>
+                    </li>
+                </ul>
+            </nav>
+        </header>
+    </div>
+
+    <h1>Auctions</h1>
+    <h2>Example Dapp</h2>
+    <h3>Your address
+        <span class="black">
+            <span id="accountAddress"></span>
+        </span>
+    </h3>
+    <h3>Your balance
+        <span class="black">
+            <span id="accountBalance"></span>
+        </span>
+    </h3>
+    <h3>Total asset count
+        <span class="black">
+            <span id="assetCount"></span>
+        </span>
+    </h3>
+    <h3>Total auction count
+        <span class="black">
+            <span id="auctionCount"></span>
+        </span>
+    </h3>
+
+    <br>
+    <h1>Asset Creation</h1>
+    <br>
+    <label for="ownerIdentifier">Owner Identifier:</label>
+    <input type="text" id="ownerIdentifier" placeholder="e.g., National Identification Number"></input>
+    <br>
+    <label for="ownerFirstName">First Name:</label>
+    <input type="text" id="ownerFirstName" placeholder="e.g., John"></input>
+    <br>
+    <label for="ownerLastName">Last Name:</label>
+    <input type="text" id="ownerLastName" placeholder="e.g., Doe"></input>
+    <br>
+    <label for="assetName">Asset Name:</label>
+    <input type="text" id="assetName" placeholder="e.g., iPhone 6"></input>
+    <br>
+    <br>
+    <button id="createAsset" onclick="App.createAsset()">Create Asset</button>
+    <br>
+    <br>
+    <h1>Auction Creation</h1>
+    <br>
+    <label for="auctionName">Auction Name:</label>
+    <input type="text" id="auctionName" placeholder="e.g., iPhone 6 64GB"></input>
+    <br>
+    <label for="auctionDescription">Auction Description:</label>
+    <input type="text" id="auctionDescription" placeholder="e.g., I'm selling my mint condition iPhone 6 64 for 1000Euro"></input>
+    <br>
+    <label for="expirationTime">Expiration Time:</label>
+    <input type="text" id="expirationTime" placeholder="e.g., 7 days in Unix time"></input>
+    <br>
+    <label for="startPrice">Start Price:</label>
+    <input type="text" id="startPrice" placeholder="e.g., 100"></input>
+    <br>
+    <label for="assetId">Asset Id:</label>
+    <input type="text" id="assetId" placeholder="e.g., 0"></input>
+    <br>
+    <br>
+    <button id="createAuction" onclick="App.createAuction()">Create Auction</button>
+    <br>
+    <span id="status"></span>
+    <br>
+    <span class="hint">
+        <strong>Hint:</strong> open the browser developer console to view any errors and warnings.</span>
+</body>
+
+</html>
