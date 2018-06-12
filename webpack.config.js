@@ -17,6 +17,9 @@ module.exports = {
     ]),
     new CopyWebpackPlugin([
       { from: './app/createAuction.html', to: "createAuction.html" }
+    ]),
+    new CopyWebpackPlugin([
+      { from: './app/auctions.html', to: "auctions.html" }
     ])
   ],
   module: {
