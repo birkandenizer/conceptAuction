@@ -72,7 +72,7 @@ contract ConceptAuction {
         _;
     }
 
-    function ConceptAuction() public {
+    constructor() public {
         owner = msg.sender;
     }
 
