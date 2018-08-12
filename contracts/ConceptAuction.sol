@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.22;
 
 contract ConceptAuction {
 
@@ -57,18 +57,18 @@ contract ConceptAuction {
     event BidPlacement(uint auctionId, address bidder, uint256 amount);
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Only owner is allowed to use this operation");
         _;
     }
 
-    modifier onlySeller(uint auctionId) {
-        require(msg.sender == auctions[auctionId].seller);
+    modifier onlySeller(uint _auctionId) {
+        require(msg.sender == auctions[_auctionId].seller, "Only seller is allowed to use this operation");
         _;
     }
 
-    modifier onlyLive(uint auctionId) {
-        Auction memory current = auctions[auctionId];
-        require(block.timestamp <= current.expirationTime);
+    modifier onlyLive(uint _auctionId, uint _currentBidTimestamp) {
+        Auction memory current = auctions[_auctionId];
+        require(_currentBidTimestamp < current.expirationTime, "This operation should be performed if auction is live");
         _;
     }
 
@@ -100,9 +100,9 @@ contract ConceptAuction {
         uint256 _startTime, uint256 _expirationTime,
         uint256 _startPrice, uint256 _assetId) public payable returns (uint256 _auctionId) {
 
-        require(0 < _expirationTime);
-        require(0 < _startPrice);
-        require(assets[_assetId].status == false);
+        require(0 < _expirationTime, "Expiration time cannot be set to zero or lower.");
+        require(0 < _startPrice, "Start price cannot be set to zero or lower.");
+        require(assets[_assetId].status == false, "Asset cannot be auctioned as it is already in another auction right now.");
 
         _auctionId = auctionCount++;
         auctions[_auctionId].seller = msg.sender;
@@ -307,9 +307,12 @@ contract ConceptAuction {
     //Auction related setters
     function placeBid(
         uint256 _auctionId, uint256 _currentBidTimestamp, uint256 _ownerIdentifier,
-        string _ownerFirstName, string _ownerLastName) public payable onlyLive(_auctionId) returns (bool) {
+        string _ownerFirstName, string _ownerLastName) public payable onlyLive(_auctionId, _currentBidTimestamp) returns (bool) {
         Auction storage currentAuction = auctions[_auctionId];
-        require(msg.value > currentAuction.currentBidAmount);
+        require(
+            msg.value >= currentAuction.currentBidAmount,
+            "Bid placement failed as the amount that is sent as bid is lower than current bid."
+        );
 
         uint256 bidId = currentAuction.bidCount++;
         currentAuction.bids[bidId] = Bid(msg.sender, msg.value, _currentBidTimestamp, _ownerIdentifier, _ownerFirstName, _ownerLastName);
@@ -356,8 +359,8 @@ contract ConceptAuction {
     function finishAuction(uint256 _auctionId, uint256 _timestamp) public returns (bool) {
         Auction storage currentAuction = auctions[_auctionId];
 
-        require(currentAuction.status == true);
-        require(_timestamp > currentAuction.expirationTime);
+        require(currentAuction.status == true, "Finish auction failed as auction needs to be active to be finished.");
+        require(_timestamp > currentAuction.expirationTime, "Finish auction failed as expiration time is not reached.");
 
         if (currentAuction.bidCount == 0) {
             currentAuction.status = false;
