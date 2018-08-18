@@ -37,17 +37,17 @@ contract ConceptAuction {
         mapping (uint256 => Bid) bids;
     }
 
-    uint256 public assetCount;
-    uint256 public auctionCount;
+    uint256 private assetCount;
+    uint256 private auctionCount;
 
-    mapping(uint256 => Asset) public assets;
-    mapping(uint256 => Auction) public auctions;
-    mapping(address => uint256[]) public assetsAddedByUser;
-    mapping(address => uint256[]) public auctionsOpenedByUser;
-    mapping(address => uint256[]) public auctionsBidByUser;
-    mapping(address => uint256) public refunds;
+    mapping(uint256 => Asset) private assets;
+    mapping(uint256 => Auction) private auctions;
+    mapping(address => uint256[]) private assetsAddedByUser;
+    mapping(address => uint256[]) private auctionsOpenedByUser;
+    mapping(address => uint256[]) private auctionsBidByUser;
+    mapping(address => uint256) private refunds;
 
-    address public owner;
+    address private owner;
 
     // Events that will be checked by DAPPs
     event AssetCreation(uint256 id, address owner, string assetName);
@@ -76,7 +76,6 @@ contract ConceptAuction {
         owner = msg.sender;
     }
 
-    // Maybe we can add default fallback here
     function createAsset(
         uint256  _ownerIdentifier, uint256 _timestamp, string _ownerFirstName, string _ownerLastName,
         string _assetName) external returns (uint256 _assetId) {
