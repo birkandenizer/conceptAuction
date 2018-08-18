@@ -3,20 +3,20 @@ pragma solidity ^0.4.22;
 contract ConceptAuction {
 
     struct Asset {
-        uint256 ownerIdentifier;//TC kimlik gibi
+        uint256 ownerIdentifier;
         uint256 timestamp;
         address owner;
         string ownerFirstName;
         string ownerLastName;
         string name;
-        bool status;//In auction or not
+        bool status;
     }
 
     struct Bid {
         address bidder;
         uint256 amount;
         uint256 timestamp;
-        uint256 ownerIdentifier;//TC kimlik gibi
+        uint256 ownerIdentifier;
         string ownerFirstName;
         string ownerLastName;
     }
@@ -33,7 +33,7 @@ contract ConceptAuction {
         uint256 currentBidTimestamp;
         uint256 bidCount;
         uint256 assetIdentifier;
-        bool status;//Active or not
+        bool status;
         mapping (uint256 => Bid) bids;
     }
 
@@ -79,7 +79,7 @@ contract ConceptAuction {
     // Maybe we can add default fallback here
     function createAsset(
         uint256  _ownerIdentifier, uint256 _timestamp, string _ownerFirstName, string _ownerLastName,
-        string _assetName) public returns (uint256 _assetId) {
+        string _assetName) external returns (uint256 _assetId) {
 
         _assetId = assetCount++;
         assets[_assetId].ownerIdentifier = _ownerIdentifier;
@@ -98,7 +98,7 @@ contract ConceptAuction {
     function createAuction(
         string _name, string _description,
         uint256 _startTime, uint256 _expirationTime,
-        uint256 _startPrice, uint256 _assetId) public payable returns (uint256 _auctionId) {
+        uint256 _startPrice, uint256 _assetId) external payable returns (uint256 _auctionId) {
 
         require(0 < _expirationTime, "Expiration time cannot be set to zero or lower.");
         require(0 < _startPrice, "Start price cannot be set to zero or lower.");
@@ -125,7 +125,7 @@ contract ConceptAuction {
     }
 
     //Asset related getters
-    function getAsset(uint256 _assetId) public view returns(
+    function getAsset(uint256 _assetId) external view returns(
         uint256,uint256,address,string,string,string,bool) {
         Asset memory current = assets[_assetId];
         return (
@@ -139,39 +139,39 @@ contract ConceptAuction {
             );
     }
 
-    function getAssetCount() public view returns(uint256){
+    function getAssetCount() external view returns(uint256){
         return assetCount;
     }
 
-    function getAssetOwnerIdentifier(uint256 _assetId) public view returns(uint256) {
+    function getAssetOwnerIdentifier(uint256 _assetId) external view returns(uint256) {
         return assets[_assetId].ownerIdentifier;
     }
 
-    function getAssetTimestamp(uint256 _assetId) public view returns(uint256) {
+    function getAssetTimestamp(uint256 _assetId) external view returns(uint256) {
         return assets[_assetId].timestamp;
     }
 
-    function getAssetOwner(uint256 _assetId) public view returns(address) {
+    function getAssetOwner(uint256 _assetId) external view returns(address) {
         return assets[_assetId].owner;
     }
 
-    function getAssetOwnerFirstName(uint256 _assetId) public view returns(string) {
+    function getAssetOwnerFirstName(uint256 _assetId) external view returns(string) {
         return assets[_assetId].ownerFirstName;
     }
 
-    function getAssetOwnerLastName(uint256 _assetId) public view returns(string) {
+    function getAssetOwnerLastName(uint256 _assetId) external view returns(string) {
         return assets[_assetId].ownerLastName;
     }
 
-    function getAssetName(uint256 _assetId) public view returns(string) {
+    function getAssetName(uint256 _assetId) external view returns(string) {
         return assets[_assetId].name;
     }
 
-    function getAssetStatus(uint256 _assetId) public view returns(bool) {
+    function getAssetStatus(uint256 _assetId) external view returns(bool) {
         return assets[_assetId].status;
     }
 
-    function getAssetCountForUser(address _user) public view returns (uint256) {
+    function getAssetCountForUser(address _user) external view returns (uint256) {
         return assetsAddedByUser[_user].length;
     }
 
@@ -233,11 +233,11 @@ contract ConceptAuction {
     }
 
     //Auction related getters
-    function getAuctionCount() public view returns(uint256) {
+    function getAuctionCount() external view returns(uint256) {
         return auctionCount;
     }
 
-    function getAuction(uint256 _auctionId) public view returns(
+    function getAuction(uint256 _auctionId) external view returns(
         string,string,uint256,uint256,uint256,bool,address,address,uint256,uint256,uint256,uint256) {
         Auction memory current = auctions[_auctionId];
         return (
@@ -256,58 +256,58 @@ contract ConceptAuction {
             );
     }
 
-    function getAuctionName(uint256 _auctionId) public view returns(string) {
+    function getAuctionName(uint256 _auctionId) external view returns(string) {
         return auctions[_auctionId].name;
     }
 
-    function getAuctionDescription(uint256 _auctionId) public view returns(string) {
+    function getAuctionDescription(uint256 _auctionId) external view returns(string) {
         return auctions[_auctionId].description;
     }
 
-    function getAuctionStartTime(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionStartTime(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].startTime;
     }
 
-    function getAuctionExpirationTime(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionExpirationTime(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].expirationTime;
     }
 
-    function getAuctionStartPrice(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionStartPrice(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].startPrice;
     }
 
-    function getAuctionStatus(uint256 _auctionId) public view returns (bool) {
+    function getAuctionStatus(uint256 _auctionId) external view returns (bool) {
         return auctions[_auctionId].status;
     }
 
-    function getAuctionCurrentBidder(uint256 _auctionId) public view returns(address) {
+    function getAuctionCurrentBidder(uint256 _auctionId) external view returns(address) {
         return auctions[_auctionId].currentBidBidder;
     }
 
-    function getAuctionCurrentBidAmount(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionCurrentBidAmount(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].currentBidAmount;
     }
 
-    function getAuctionCurrentBidTimestamp(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionCurrentBidTimestamp(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].currentBidTimestamp;
     }
 
-    function getAuctionSeller(uint256 _auctionId) public view returns(address) {
+    function getAuctionSeller(uint256 _auctionId) external view returns(address) {
         return auctions[_auctionId].seller;
     }
 
-    function getAuctionBidCount(uint256 _auctionId) public view returns(uint256) {
+    function getAuctionBidCount(uint256 _auctionId) external view returns(uint256) {
         return auctions[_auctionId].bidCount;
     }
 
-    function getAuctionCountForUser(address _user) public view returns (uint256) {
+    function getAuctionCountForUser(address _user) external view returns (uint256) {
         return auctionsOpenedByUser[_user].length;
     }
 
     //Auction related setters
     function placeBid(
         uint256 _auctionId, uint256 _currentBidTimestamp, uint256 _ownerIdentifier,
-        string _ownerFirstName, string _ownerLastName) public payable onlyLive(_auctionId, _currentBidTimestamp) returns (bool) {
+        string _ownerFirstName, string _ownerLastName) external payable onlyLive(_auctionId, _currentBidTimestamp) returns (bool) {
         Auction storage currentAuction = auctions[_auctionId];
         require(
             msg.value >= currentAuction.currentBidAmount,
@@ -335,7 +335,7 @@ contract ConceptAuction {
         return true;
     }
 
-    function cancelAuction(uint256 _auctionId, uint256 _expirationTime) public onlySeller(_auctionId) returns (bool) {
+    function cancelAuction(uint256 _auctionId, uint256 _expirationTime) external onlySeller(_auctionId) returns (bool) {
         Auction storage currentAuction = auctions[_auctionId];
         uint256 bidCount = currentAuction.bidCount;
 
@@ -356,7 +356,7 @@ contract ConceptAuction {
         return true;
     }
 
-    function finishAuction(uint256 _auctionId, uint256 _timestamp) public returns (bool) {
+    function finishAuction(uint256 _auctionId, uint256 _timestamp) external returns (bool) {
         Auction storage currentAuction = auctions[_auctionId];
 
         require(currentAuction.status == true, "Finish auction failed as auction needs to be active to be finished.");
@@ -387,11 +387,11 @@ contract ConceptAuction {
     }
 
     //Refund related methods
-    function getRefundValue() public view returns (uint256) {
+    function getRefundValue() external view returns (uint256) {
         return refunds[msg.sender];
     }
 
-    function transferRefund() public {
+    function transferRefund() external {
         uint256 refundAmount = refunds[msg.sender];
         if (refundAmount > 0) {
             refunds[msg.sender] = 0;
